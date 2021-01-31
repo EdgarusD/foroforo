@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
+	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -10,17 +13,28 @@ type Thread struct {
 	Author string `json:"author" binding:"required"`
 	Title  string `json:"title" binding:"required"`
 	Body   string `json:"body" binding:"required"`
+	key    string
 }
 
 func main() {
+	s1 := rand.NewSource(time.Now().UnixNano())
+	r1 := rand.New(s1)
 	db := []Thread{}
 	r := gin.Default()
 	r.POST("/thread", func(c *gin.Context) {
-		var thread Thread
-		if c.Bind(&thread) == nil {
-			db = append(db, thread)
+		var newThread Thread
+		err := c.Bind(&newThread)
+		fmt.Println(err)
+		if err == nil {
 			fmt.Println("se agrego un hilo")
-			c.JSON(200, gin.H{"id": len(db) - 1})
+			num := r1.Intn(2147483647)
+			num2 := r1.Intn(2147483647)
+			s := strconv.Itoa(num)
+			s2 := strconv.Itoa(num2)
+			key := s + s2
+			newThread.key = key
+			db = append(db, newThread)
+			c.JSON(200, gin.H{"id": len(db) - 1, "key": key})
 		}
 	})
 	r.GET("/", func(c *gin.Context) {
